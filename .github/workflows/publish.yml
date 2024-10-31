@@ -47,10 +47,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          os: ['ubuntu-20.04']
-          python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-          pytorch-version: ['2.4.0']  # Must be the most recent version that meets requirements-cuda.txt.
-          cuda-version: ['11.8', '12.1']
+          os: ['rocm/pytorch:rocm6.2_ubuntu20.04_py3.9_pytorch_release_2.3.0']
+          python-version: ['3.9']
+          pytorch-version: ['2.3.0']  # Must be the most recent version that meets requirements-cuda.txt.
 
     steps:
       - name: Checkout
@@ -60,32 +59,19 @@ jobs:
         uses: hendrikmuhs/ccache-action@ed74d11c0b343532753ecead8a951bb09bb34bc9 # v1.2.14
         with:
           create-symlink: true
-          key: ${{ github.job }}-${{ matrix.python-version }}-${{ matrix.cuda-version }}
+          key: ${{ github.job }}-${{ matrix.python-version }}
 
       - name: Set up Linux Env
         if: ${{ runner.os == 'Linux' }}
         run: |
           bash -x .github/workflows/scripts/env.sh
 
-      - name: Set up Python
-        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
-        with:
-            python-version: ${{ matrix.python-version }}
-
-      - name: Install CUDA ${{ matrix.cuda-version }}
-        run: |
-          bash -x .github/workflows/scripts/cuda-install.sh ${{ matrix.cuda-version }} ${{ matrix.os }}
-
-      - name: Install PyTorch ${{ matrix.pytorch-version }} with CUDA ${{ matrix.cuda-version }}
-        run: |
-          bash -x .github/workflows/scripts/pytorch-install.sh ${{ matrix.python-version }} ${{ matrix.pytorch-version }} ${{ matrix.cuda-version }}
-
       - name: Build wheel
         shell: bash
         env:
           CMAKE_BUILD_TYPE: Release # do not compile with debug symbol to reduce wheel size
         run: |
-          bash -x .github/workflows/scripts/build.sh ${{ matrix.python-version }} ${{ matrix.cuda-version }}
+          bash -x .github/workflows/scripts/build.sh ${{ matrix.python-version }}
           wheel_name=$(find dist -name "*whl" -print0 | xargs -0 -n 1 basename)
           asset_name=${wheel_name//"linux"/"manylinux1"}
           echo "wheel_name=${wheel_name}" >> "$GITHUB_ENV"
