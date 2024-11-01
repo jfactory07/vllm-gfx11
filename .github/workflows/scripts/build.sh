@@ -16,3 +16,5 @@ rm -f $(which sccache)
 
 # Build
 $python_executable setup.py bdist_wheel --dist-dir=dist
+cd gradlib
+$python_executable setup.py bdist_wheel --dist-dir=../dist
