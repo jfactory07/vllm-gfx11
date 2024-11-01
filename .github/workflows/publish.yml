@@ -67,6 +67,8 @@ jobs:
           gradlib_asset_name=${gradlib_wheel_name//"linux"/"manylinux1"}
           echo "wheel_name=${wheel_name}" >> "$GITHUB_ENV"
           echo "asset_name=${asset_name}" >> "$GITHUB_ENV"
+          echo "wheel_name=${gradlib_wheel_name}" >> "$GITHUB_ENV"
+          echo "asset_name=${gradlib_asset_name}" >> "$GITHUB_ENV"
 
       - name: Upload vllm Release Asset
         uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
