@@ -523,11 +523,11 @@ void rms_norm(torch::Tensor& out,     // [..., hidden_size]
   });
 }
 
-#ifdef USE_ROCM
 void scaled_rms_norm(torch::Tensor& out,     // [..., hidden_size]
                      torch::Tensor& input,   // [..., hidden_size]
                      torch::Tensor& weight,  // [hidden_size]
                      torch::Tensor& scale, double epsilon) {
+#ifdef USE_ROCM
   int hidden_size = input.size(-1);
   int num_tokens = input.numel() / hidden_size;
 
@@ -542,8 +542,8 @@ void scaled_rms_norm(torch::Tensor& out,     // [..., hidden_size]
             weight.data_ptr<scalar_t>(), 1.0 / (*scale.data_ptr<float>()),
             epsilon, num_tokens, hidden_size);
       });
-}
 #endif
+}
 
 #define LAUNCH_FUSED_ADD_RMS_NORM(width)                                       \
   VLLM_DISPATCH_FLOATING_TYPES(                                                \
@@ -601,12 +601,14 @@ void fused_add_rms_norm(torch::Tensor& input,     // [..., hidden_size]
                 weight.data_ptr<scalar_t>(), epsilon,                      \
                 *scale.data_ptr<float>(), num_tokens, hidden_size);        \
       });
+#endif
 
 void scaled_fused_add_rms_norm(torch::Tensor& out,       // [..., hidden_size]
                                torch::Tensor& input,     // [..., hidden_size]
                                torch::Tensor& residual,  // [..., hidden_size]
                                torch::Tensor& weight,    // [hidden_size]
                                torch::Tensor& scale, double epsilon) {
+#ifdef USE_ROCM
   int hidden_size = input.size(-1);
   int num_tokens = input.numel() / hidden_size;
 
@@ -636,5 +638,5 @@ void scaled_fused_add_rms_norm(torch::Tensor& out,       // [..., hidden_size]
   } else {
     LAUNCH_SCALED_FUSED_ADD_RMS_NORM(0);
   }
-}
 #endif
+}

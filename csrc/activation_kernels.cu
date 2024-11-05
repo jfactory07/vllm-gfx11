@@ -115,13 +115,13 @@ void silu_and_mul(torch::Tensor& out,    // [..., d]
   LAUNCH_ACTIVATION_GATE_KERNEL(vllm::silu_kernel);
 }
 
-#ifdef USE_ROCM
 void scaled_silu_and_mul(torch::Tensor& out,    // [..., d]
                          torch::Tensor& input,  // [..., 2 * d]
                          torch::Tensor& scale) {
+#ifdef USE_ROCM
   LAUNCH_SCALED_ACTIVATION_GATE_KERNEL(vllm::silu_kernel);
-}
 #endif
+}
 
 void gelu_and_mul(torch::Tensor& out,    // [..., d]
                   torch::Tensor& input)  // [..., 2 * d]
