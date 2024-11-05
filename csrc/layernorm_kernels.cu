@@ -110,6 +110,7 @@ __global__ void rms_norm_kernel(
   }
 }
 
+#ifdef USE_ROCM
 template <typename scalar_t>
 __global__ void scaled_rms_norm_kernel(
     c10::Float8_e4m3fnuz* __restrict__ out,  // [..., hidden_size]
@@ -141,6 +142,7 @@ __global__ void scaled_rms_norm_kernel(
         hip_fp8(r).data, c10::Float8_e4m3fnuz::from_bits());
   }
 }
+#endif
 
 /* Converter structs for the conversion from torch types to HIP/CUDA types,
    and the associated type conversions within HIP/CUDA. These helpers need
@@ -462,6 +464,7 @@ scaled_fused_add_rms_norm_kernel(
 /* Generic scaled_fused_add_rms_norm_kernel
    The width field is not used here but necessary for other specializations.
  */
+#ifdef USE_ROCM
 template <typename scalar_t, int width>
 __global__ std::enable_if_t<(width == 0) || !_typeConvert<scalar_t>::exists>
 scaled_fused_add_rms_norm_kernel(
@@ -498,6 +501,7 @@ scaled_fused_add_rms_norm_kernel(
         hip_fp8(r).data, c10::Float8_e4m3fnuz::from_bits());
   }
 }
+#endif
 
 }  // namespace vllm
 
@@ -519,6 +523,7 @@ void rms_norm(torch::Tensor& out,     // [..., hidden_size]
   });
 }
 
+#ifdef USE_ROCM
 void scaled_rms_norm(torch::Tensor& out,     // [..., hidden_size]
                      torch::Tensor& input,   // [..., hidden_size]
                      torch::Tensor& weight,  // [hidden_size]
@@ -538,6 +543,7 @@ void scaled_rms_norm(torch::Tensor& out,     // [..., hidden_size]
             epsilon, num_tokens, hidden_size);
       });
 }
+#endif
 
 #define LAUNCH_FUSED_ADD_RMS_NORM(width)                                       \
   VLLM_DISPATCH_FLOATING_TYPES(                                                \
@@ -584,6 +590,7 @@ void fused_add_rms_norm(torch::Tensor& input,     // [..., hidden_size]
   }
 }
 
+#ifdef USE_ROCM
 #define LAUNCH_SCALED_FUSED_ADD_RMS_NORM(width)                            \
   VLLM_DISPATCH_FLOATING_TYPES(                                            \
       input.scalar_type(), "scaled_fused_add_rms_norm_kernel", [&] {       \
@@ -630,3 +637,4 @@ void scaled_fused_add_rms_norm(torch::Tensor& out,       // [..., hidden_size]
     LAUNCH_SCALED_FUSED_ADD_RMS_NORM(0);
   }
 }
+#endif
