@@ -227,8 +227,8 @@ rms_norm_kernel(scalar_t* __restrict__ out,           // [..., hidden_size]
 
   auto* __restrict__ out_v = reinterpret_cast<_f16Vec<scalar_t, width>*>(out);
   auto* __restrict__ input_v =
-      reinterpret_cast<const _f16Vec<scalar_t, width>*>(input +
-                                                        bx * static_cast<int64_t>(hidden_size));
+      reinterpret_cast<const _f16Vec<scalar_t, width>*>(
+          input + bx * static_cast<int64_t>(hidden_size));
   auto* __restrict__ weight_v =
       reinterpret_cast<const _f16Vec<scalar_t, width>*>(weight);
 
@@ -245,7 +245,7 @@ rms_norm_kernel(scalar_t* __restrict__ out,           // [..., hidden_size]
       BlockReduce(reduceStore).Reduce(v8_variance_sum, cub::Sum{}, num_threads);
 
   if (threadIdx.x == 0) {
-      s_variance = rsqrtf(variance / hidden_size + epsilon);
+    s_variance = rsqrtf(variance / hidden_size + epsilon);
   }
   __syncthreads();
 
@@ -270,7 +270,8 @@ rms_norm_kernel(scalar_t* __restrict__ out,           // [..., hidden_size]
   float variance = 0.0f;
 
   for (int idx = threadIdx.x; idx < hidden_size; idx += blockDim.x) {
-    const float x = (float)input[blockIdx.x * static_cast<int64_t>(hidden_size) + idx];
+    const float x =
+        (float)input[blockIdx.x * static_cast<int64_t>(hidden_size) + idx];
     variance += x * x;
   }
 
