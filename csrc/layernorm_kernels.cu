@@ -285,7 +285,8 @@ rms_norm_kernel(scalar_t* __restrict__ out,           // [..., hidden_size]
   __syncthreads();
 
   for (int idx = threadIdx.x; idx < hidden_size; idx += blockDim.x) {
-    float x = (float)input[blockIdx.x * hidden_size + idx];
+    float x =
+        (float)input[blockIdx.x * static_cast<int64_t>(hidden_size) + idx];
     out[blockIdx.x * static_cast<int64_t>(hidden_size) + idx] =
         ((scalar_t)(x * s_variance)) * weight[idx];
   }
