@@ -5,7 +5,8 @@ python_executable=python3
 
 # Update paths
 # Install requirements
-$python_executable -m pip install -r requirements-rocm.txt
+$python_executable -m pip install -r requirements-rocm.txt\
+$python_executable setup.py clean --all
 
 # Limit the number of parallel jobs to avoid OOM
 export MAX_JOBS=1

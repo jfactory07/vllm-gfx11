@@ -58,7 +58,7 @@ jobs:
           && pip uninstall -y torch torchvision \
           && git clone https://github.com/ROCm/pytorch.git pytorch \
           && cd pytorch && git checkout cedc116 && git submodule update --init --recursive \
-          && python tools/amd_build/build_amd.py \
+          && python3 tools/amd_build/build_amd.py \
           && CMAKE_PREFIX_PATH=$(python3 -c 'import sys; print(sys.prefix)') python3 setup.py bdist_wheel --dist-dir=dist \
           && pip install dist/*.whl \
           && cd .. \
@@ -67,15 +67,6 @@ jobs:
           && python3 setup.py bdist_wheel --dist-dir=dist \
           && pip install dist/*.whl \
           && cd ..
-          pip uninstall -y triton \
-          && python3 -m pip install ninja cmake wheel pybind11 && git clone https://github.com/triton-lang/triton.git \
-          && cd triton \
-          && git checkout e192dba \
-          && cd python \
-          && python3 setup.py bdist_wheel --dist-dir=dist \
-          && pip install dist/*.whl \
-          && cd .. \
-          && cd .. 
 
       - name: Checkout
         uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
