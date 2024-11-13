@@ -268,6 +268,7 @@ void rms_norm(torch::Tensor& out,     // [..., hidden_size]
               torch::Tensor& input,   // [..., hidden_size]
               torch::Tensor& weight,  // [hidden_size]
               double epsilon) {
+#ifdef __HIP__MI300_MI250__
   int hidden_size = input.size(-1);
   int num_tokens = input.numel() / hidden_size;
   int vec_size = 16 / input.element_size();
@@ -283,6 +284,20 @@ void rms_norm(torch::Tensor& out,     // [..., hidden_size]
   } else {
     LAUNCH_RMS_NORM(0);
   }
+#else
+  int hidden_size = input.size(-1);
+  int num_tokens = input.numel() / hidden_size;
+
+  dim3 grid(num_tokens);
+  dim3 block(std::min(hidden_size, 1024));
+  const at::cuda::OptionalCUDAGuard device_guard(device_of(input));
+  const cudaStream_t stream = at::cuda::getCurrentCUDAStream();
+  VLLM_DISPATCH_FLOATING_TYPES(input.scalar_type(), "rms_norm_kernel", [&] {
+    vllm::rms_norm_kernel<scalar_t><<<grid, block, 0, stream>>>(
+        out.data_ptr<scalar_t>(), input.data_ptr<scalar_t>(),
+        weight.data_ptr<scalar_t>(), epsilon, num_tokens, hidden_size);
+  });
+#endif
 }
 
 #define LAUNCH_FUSED_ADD_RMS_NORM(width)                                       \
