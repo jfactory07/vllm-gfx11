@@ -14,6 +14,7 @@ if current_platform.is_rocm():
     from hipbsolidxgemm import hipb_create_extension, hipb_mm
     from rocsolidxgemm import rocb_create_extension, rocb_mm
 
+
 class TunedGemm:
 
     def __init__(self):
@@ -30,7 +31,7 @@ class TunedGemm:
 
         if current_platform.is_rocm():
             self.cu_count = torch.cuda.get_device_properties(
-                    device='cuda').multi_processor_count
+                device='cuda').multi_processor_count
         else:
             self.cu_count = -1
 

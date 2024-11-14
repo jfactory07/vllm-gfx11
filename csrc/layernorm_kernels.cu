@@ -633,16 +633,16 @@ void fused_add_rms_norm(torch::Tensor& input,     // [..., hidden_size]
 }
 
 #ifdef USE_ROCM
-#define LAUNCH_SCALED_FUSED_ADD_RMS_NORM(width)                            \
-  VLLM_DISPATCH_FLOATING_TYPES(                                            \
-      input.scalar_type(), "scaled_fused_add_rms_norm_kernel", [&] {       \
-        vllm::scaled_fused_add_rms_norm_kernel<scalar_t, width>            \
-            <<<grid, block, 0, stream>>>(                                  \
-                out.data_ptr<c10::Float8_e4m3fnuz>(),                      \
-                input.data_ptr<scalar_t>(), residual.data_ptr<scalar_t>(), \
-                weight.data_ptr<scalar_t>(), epsilon,                      \
-                *scale.data_ptr<float>(), num_tokens, hidden_size);        \
-      });
+  #define LAUNCH_SCALED_FUSED_ADD_RMS_NORM(width)                            \
+    VLLM_DISPATCH_FLOATING_TYPES(                                            \
+        input.scalar_type(), "scaled_fused_add_rms_norm_kernel", [&] {       \
+          vllm::scaled_fused_add_rms_norm_kernel<scalar_t, width>            \
+              <<<grid, block, 0, stream>>>(                                  \
+                  out.data_ptr<c10::Float8_e4m3fnuz>(),                      \
+                  input.data_ptr<scalar_t>(), residual.data_ptr<scalar_t>(), \
+                  weight.data_ptr<scalar_t>(), epsilon,                      \
+                  *scale.data_ptr<float>(), num_tokens, hidden_size);        \
+        });
 #endif
 
 void scaled_fused_add_rms_norm(torch::Tensor& out,       // [..., hidden_size]
